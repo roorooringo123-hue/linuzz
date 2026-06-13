@@ -388,47 +388,30 @@ export default function Browser() {
       return <SearchResults query={activeTab.url.replace('search://', '')} onNavigate={navigateTo} />;
     }
 
-    // For real URLs, try a best-effort iframe with a friendly fallback if blocked.
+    // For real URLs, show iframe or error
     const host = activeTab.url.replace(/^https?:\/\//, '').split('/')[0];
-    const openExternal = () => {
-      if (typeof window !== 'undefined') window.open(activeTab.url, '_blank', 'noopener,noreferrer');
-    };
+    const isIframeFriendly = IFRAME_FRIENDLY_SITES.some((s) => host.includes(s));
 
-    return (
-      <div className="relative w-full h-full" style={{ background: 'var(--bg-window)' }}>
+    if (isIframeFriendly) {
+      return (
         <iframe
           ref={iframeRef}
           src={activeTab.url}
-          className="w-full h-full border-0 relative z-10"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          referrerPolicy="no-referrer"
+          className="w-full h-full border-0"
+          sandbox="allow-scripts allow-same-origin allow-forms"
           title={activeTab.title}
         />
-        {/* Fallback panel sits behind the iframe — visible only when the site refuses to embed */}
-        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-8 text-center" style={{ background: 'var(--bg-window)', color: 'var(--text-primary)' }}>
-          <Globe size={48} style={{ color: 'var(--accent-primary)', marginBottom: 16 }} />
-          <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{host} refused to load</h2>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 380, marginBottom: 16 }}>
-            Many sites block embedding for security (X-Frame-Options / CSP). You can open it in a new tab instead.
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={openExternal}
-              className="px-3 py-1.5 rounded-md text-sm font-medium"
-              style={{ background: 'var(--accent-primary)', color: 'white' }}
-            >
-              Open in new tab
-            </button>
-            <button
-              onClick={() => navigateTo('home')}
-              className="px-3 py-1.5 rounded-md text-sm font-medium"
-              style={{ background: 'var(--bg-hover)', color: 'var(--text-primary)' }}
-            >
-              Back to home
-            </button>
-          </div>
-        </div>
-      </div>
+      );
+    }
+
+    // Show simulated page
+    return (
+      <iframe
+        ref={iframeRef}
+        srcDoc={generateSimulatedPage(activeTab.url)}
+        className="w-full h-full border-0"
+        title={activeTab.title}
+      />
     );
   };
 
