@@ -5,6 +5,26 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import type { OSState, OSAction, Window, DesktopIcon, Notification, DockItem, WindowState } from '@/jcimlas-os/types';
 import { APP_REGISTRY, getAppById, getDefaultDockApps } from '@/jcimlas-os/apps/registry';
+import { DEFAULT_WALLPAPER, getWallpaperUrl } from '@/jcimlas-os/wallpapers';
+
+const THEME_STORAGE_KEY = 'jcimlasos_theme';
+const loadTheme = () => {
+  try {
+    const s = localStorage.getItem(THEME_STORAGE_KEY);
+    if (s) {
+      const parsed = JSON.parse(s);
+      return {
+        mode: parsed.mode || 'dark',
+        accent: parsed.accent || '#7C4DFF',
+        wallpaper: getWallpaperUrl(parsed.wallpaper || DEFAULT_WALLPAPER),
+      };
+    }
+  } catch { /* ignore */ }
+  return { mode: 'dark' as const, accent: '#7C4DFF', wallpaper: DEFAULT_WALLPAPER };
+};
+const saveTheme = (t: { mode: string; accent: string; wallpaper: string }) => {
+  try { localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(t)); } catch { /* ignore */ }
+};
 
 // ---- Helpers ----
 const generateId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -70,11 +90,7 @@ const initialState: OSState = {
   windows: [],
   apps: APP_REGISTRY,
   desktopIcons: loadDesktopIcons(),
-  theme: {
-    mode: 'dark',
-    accent: '#7C4DFF',
-    wallpaper: '/wallpaper-default.jpg',
-  },
+  theme: loadTheme(),
   notifications: [],
   dockItems: createInitialDockItems(),
   contextMenu: {
@@ -326,12 +342,18 @@ function osReducer(state: OSState, action: OSAction): OSState {
     }
 
     case 'SET_THEME': {
-      return { ...state, theme: { ...state.theme, ...action.theme } };
+      const incoming = { ...action.theme } as Partial<typeof state.theme>;
+      if (incoming.wallpaper) incoming.wallpaper = getWallpaperUrl(incoming.wallpaper);
+      const theme = { ...state.theme, ...incoming };
+      saveTheme(theme);
+      return { ...state, theme };
     }
 
     case 'TOGGLE_THEME': {
-      const mode = state.theme.mode === 'dark' ? 'light' : 'dark';
-      return { ...state, theme: { ...state.theme, mode } };
+      const mode: 'dark' | 'light' = state.theme.mode === 'dark' ? 'light' : 'dark';
+      const theme = { ...state.theme, mode };
+      saveTheme(theme);
+      return { ...state, theme };
     }
 
     case 'PIN_DOCK_ITEM': {
