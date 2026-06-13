@@ -34,11 +34,13 @@ const Dock = memo(function Dock() {
 
   const handleAppClick = useCallback(
     (appId: string) => {
-      const hasOpenWindow = state.windows.some((w) => w.appId === appId && w.state !== 'minimized');
-      if (hasOpenWindow) {
-        // Focus existing window
-        const win = state.windows.find((w) => w.appId === appId && w.state !== 'minimized');
-        if (win) dispatch({ type: 'FOCUS_WINDOW', windowId: win.id });
+      const visibleWindow = state.windows.find((w) => w.appId === appId && w.state !== 'minimized');
+      const minimizedWindow = state.windows.find((w) => w.appId === appId && w.state === 'minimized');
+      if (visibleWindow) {
+        dispatch({ type: 'FOCUS_WINDOW', windowId: visibleWindow.id });
+      } else if (minimizedWindow) {
+        dispatch({ type: 'RESTORE_WINDOW', windowId: minimizedWindow.id });
+        dispatch({ type: 'FOCUS_WINDOW', windowId: minimizedWindow.id });
       } else {
         dispatch({ type: 'OPEN_WINDOW', appId });
       }
