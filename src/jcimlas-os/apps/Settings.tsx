@@ -9,6 +9,7 @@ import {
   Star, Eye, Info, Search, Check,
 } from 'lucide-react';
 import { useOS } from '@/jcimlas-os/hooks/useOSStore';
+import { WALLPAPERS } from '@/jcimlas-os/wallpapers';
 
 interface SettingCategory {
   id: string;
@@ -47,12 +48,6 @@ const ACCENT_COLORS = [
   { name: 'Pink', value: '#E91E63' },
 ];
 
-const WALLPAPERS = [
-  { id: '/wallpaper-default.jpg', name: 'Default' },
-  { id: '/wallpaper-light.jpg', name: 'Light' },
-  { id: '/wallpaper-nature.jpg', name: 'Nature' },
-  { id: '/wallpaper-tech.jpg', name: 'Tech' },
-];
 
 const Toggle: React.FC<{ value: boolean; onChange: (v: boolean) => void }> = ({ value, onChange }) => (
   <button
@@ -173,18 +168,19 @@ const Settings: React.FC = () => {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-[var(--text-primary)]">Background</h2>
+            <div className="text-xs text-[var(--text-secondary)]">Pick a wallpaper. Your choice is saved automatically.</div>
             <div className="grid grid-cols-2 gap-4">
               {WALLPAPERS.map(w => (
                 <button
                   key={w.id}
-                  onClick={() => dispatch({ type: 'SET_THEME', theme: { wallpaper: w.id } })}
+                  onClick={() => dispatch({ type: 'SET_THEME', theme: { wallpaper: w.url } })}
                   className="relative rounded-lg overflow-hidden border-2 transition-all hover:scale-[1.02]"
                   style={{
-                    borderColor: state.theme.wallpaper === w.id ? 'var(--accent-primary)' : 'transparent',
+                    borderColor: state.theme.wallpaper === w.url ? 'var(--accent-primary)' : 'transparent',
                     aspectRatio: '16/9',
                   }}
                 >
-                  <img src={w.id} alt={w.name} className="w-full h-full object-cover" />
+                  <img src={w.url} alt={w.name} loading="lazy" className="w-full h-full object-cover" />
                   <div className="absolute bottom-0 left-0 right-0 px-2 py-1 text-xs text-white" style={{ background: 'rgba(0,0,0,0.6)' }}>
                     {w.name}
                   </div>
