@@ -90,11 +90,7 @@ const initialState: OSState = {
   windows: [],
   apps: APP_REGISTRY,
   desktopIcons: loadDesktopIcons(),
-  theme: {
-    mode: 'dark',
-    accent: '#7C4DFF',
-    wallpaper: '/wallpaper-default.jpg',
-  },
+  theme: loadTheme(),
   notifications: [],
   dockItems: createInitialDockItems(),
   contextMenu: {
@@ -346,12 +342,18 @@ function osReducer(state: OSState, action: OSAction): OSState {
     }
 
     case 'SET_THEME': {
-      return { ...state, theme: { ...state.theme, ...action.theme } };
+      const incoming = { ...action.theme } as Partial<typeof state.theme>;
+      if (incoming.wallpaper) incoming.wallpaper = getWallpaperUrl(incoming.wallpaper);
+      const theme = { ...state.theme, ...incoming };
+      saveTheme(theme);
+      return { ...state, theme };
     }
 
     case 'TOGGLE_THEME': {
-      const mode = state.theme.mode === 'dark' ? 'light' : 'dark';
-      return { ...state, theme: { ...state.theme, mode } };
+      const mode: 'dark' | 'light' = state.theme.mode === 'dark' ? 'light' : 'dark';
+      const theme = { ...state.theme, mode };
+      saveTheme(theme);
+      return { ...state, theme };
     }
 
     case 'PIN_DOCK_ITEM': {
