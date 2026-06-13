@@ -9,6 +9,7 @@ import {
   Star, Eye, Info, Search, Check,
 } from 'lucide-react';
 import { useOS } from '@/jcimlas-os/hooks/useOSStore';
+import { WALLPAPERS } from '@/jcimlas-os/wallpapers';
 
 interface SettingCategory {
   id: string;
@@ -47,12 +48,6 @@ const ACCENT_COLORS = [
   { name: 'Pink', value: '#E91E63' },
 ];
 
-const WALLPAPERS = [
-  { id: '/wallpaper-default.jpg', name: 'Default' },
-  { id: '/wallpaper-light.jpg', name: 'Light' },
-  { id: '/wallpaper-nature.jpg', name: 'Nature' },
-  { id: '/wallpaper-tech.jpg', name: 'Tech' },
-];
 
 const Toggle: React.FC<{ value: boolean; onChange: (v: boolean) => void }> = ({ value, onChange }) => (
   <button
