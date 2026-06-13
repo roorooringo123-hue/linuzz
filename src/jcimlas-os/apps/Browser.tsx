@@ -388,8 +388,9 @@ export default function Browser() {
       return <SearchResults query={activeTab.url.replace('search://', '')} onNavigate={navigateTo} />;
     }
 
-    // For real URLs, try a best-effort iframe with a friendly fallback if blocked.
+    // For real URLs, best-effort iframe with a friendly fallback when embedding is blocked.
     const host = activeTab.url.replace(/^https?:\/\//, '').split('/')[0];
+    void IFRAME_FRIENDLY_SITES; void generateSimulatedPage;
     const openExternal = () => {
       if (typeof window !== 'undefined') window.open(activeTab.url, '_blank', 'noopener,noreferrer');
     };
@@ -404,7 +405,6 @@ export default function Browser() {
           referrerPolicy="no-referrer"
           title={activeTab.title}
         />
-        {/* Fallback panel sits behind the iframe — visible only when the site refuses to embed */}
         <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-8 text-center" style={{ background: 'var(--bg-window)', color: 'var(--text-primary)' }}>
           <Globe size={48} style={{ color: 'var(--accent-primary)', marginBottom: 16 }} />
           <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{host} refused to load</h2>

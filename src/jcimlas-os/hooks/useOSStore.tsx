@@ -14,7 +14,7 @@ const loadTheme = () => {
     if (s) {
       const parsed = JSON.parse(s);
       return {
-        mode: parsed.mode || 'dark',
+        mode: (parsed.mode === 'light' ? 'light' : 'dark') as 'dark' | 'light',
         accent: parsed.accent || '#7C4DFF',
         wallpaper: getWallpaperUrl(parsed.wallpaper || DEFAULT_WALLPAPER),
       };
