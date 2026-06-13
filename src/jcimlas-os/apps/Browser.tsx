@@ -229,7 +229,10 @@ export default function Browser() {
   const closeTab = useCallback((tabId: string) => {
     setTabs((prev) => {
       if (prev.length === 1) {
-        return [{ id: generateId(), url: 'home', title: 'New Tab', history: ['home'], historyIndex: 0, loading: false }];
+        const freshTab = { id: generateId(), url: 'home', title: 'New Tab', history: ['home'], historyIndex: 0, loading: false };
+        setActiveTabId(freshTab.id);
+        setAddressBarValue('');
+        return [freshTab];
       }
       const filtered = prev.filter((t) => t.id !== tabId);
       if (activeTabId === tabId) {
@@ -247,6 +250,7 @@ export default function Browser() {
         if (t.id !== activeTabId || t.historyIndex <= 0) return t;
         const newIndex = t.historyIndex - 1;
         const url = t.history[newIndex];
+        setAddressBarValue(url === 'home' ? '' : url);
         return { ...t, url, historyIndex: newIndex };
       })
     );
@@ -258,6 +262,7 @@ export default function Browser() {
         if (t.id !== activeTabId || t.historyIndex >= t.history.length - 1) return t;
         const newIndex = t.historyIndex + 1;
         const url = t.history[newIndex];
+        setAddressBarValue(url === 'home' ? '' : url);
         return { ...t, url, historyIndex: newIndex };
       })
     );
