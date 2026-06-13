@@ -13,6 +13,12 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "jcimlasOS — a desktop OS simulator in the browser." },
       { property: "og:type", content: "website" },
     ],
+    links: [
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap",
+      },
+    ],
   }),
   component: Index,
 });
