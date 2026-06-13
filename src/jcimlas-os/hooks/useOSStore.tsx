@@ -350,7 +350,7 @@ function osReducer(state: OSState, action: OSAction): OSState {
     }
 
     case 'TOGGLE_THEME': {
-      const mode = state.theme.mode === 'dark' ? 'light' : 'dark';
+      const mode: 'dark' | 'light' = state.theme.mode === 'dark' ? 'light' : 'dark';
       const theme = { ...state.theme, mode };
       saveTheme(theme);
       return { ...state, theme };
