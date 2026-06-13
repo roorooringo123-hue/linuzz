@@ -378,7 +378,7 @@ function osReducer(state: OSState, action: OSAction): OSState {
       return {
         ...state,
         dockItems: state.dockItems.map((d) =>
-          d.appId === action.appId ? { ...d, bounce: true } : { ...d, bounce: false }
+          d.appId === action.appId ? { ...d, bounce: false } : d
         ),
       };
     }
