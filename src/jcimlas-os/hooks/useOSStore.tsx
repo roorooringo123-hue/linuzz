@@ -180,7 +180,7 @@ function osReducer(state: OSState, action: OSAction): OSState {
       const appId = win.appId;
       const hasVisible = updated.some((w) => w.appId === appId && w.state !== 'minimized');
       const updatedDock = state.dockItems.map((d) =>
-        d.appId === appId ? { ...d, isFocused: hasVisible, isOpen: hasVisible || d.isPinned } : d
+        d.appId === appId ? { ...d, isFocused: hasVisible, isOpen: true } : d
       );
       const newActiveId = updated
         .filter((w) => w.state !== 'minimized')
@@ -211,6 +211,7 @@ function osReducer(state: OSState, action: OSAction): OSState {
     case 'RESTORE_WINDOW': {
       const win = state.windows.find((w) => w.id === action.windowId);
       if (!win) return state;
+      const nextZ = state.nextZIndex + 1;
       return {
         ...state,
         windows: state.windows.map((w) =>
@@ -218,13 +219,18 @@ function osReducer(state: OSState, action: OSAction): OSState {
             ? {
                 ...w,
                 state: 'normal' as WindowState,
+                isFocused: true,
+                zIndex: nextZ,
                 position: win.prevPosition || w.position,
                 size: win.prevSize || w.size,
                 prevPosition: undefined,
                 prevSize: undefined,
               }
-            : w
+            : { ...w, isFocused: false }
         ),
+        activeWindowId: action.windowId,
+        nextZIndex: nextZ,
+        dockItems: state.dockItems.map((d) => ({ ...d, isFocused: d.appId === win.appId })),
       };
     }
 
@@ -378,7 +384,7 @@ function osReducer(state: OSState, action: OSAction): OSState {
       return {
         ...state,
         dockItems: state.dockItems.map((d) =>
-          d.appId === action.appId ? { ...d, bounce: true } : { ...d, bounce: false }
+          d.appId === action.appId ? { ...d, bounce: false } : d
         ),
       };
     }

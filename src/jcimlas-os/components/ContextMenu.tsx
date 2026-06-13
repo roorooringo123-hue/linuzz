@@ -119,20 +119,28 @@ const ContextMenu = memo(function ContextMenu() {
 function handleMenuAction(action: string, _state: unknown, dispatch: React.Dispatch<import('@/jcimlas-os/types').OSAction>) {
   const [cmd, ...args] = action.split(':');
   switch (cmd) {
-    case 'OPEN_APP': {
-      if (args[0]) dispatch({ type: 'OPEN_WINDOW', appId: args[0] });
+    case 'NEW_FOLDER': {
+      dispatch({ type: 'OPEN_WINDOW', appId: 'filemanager' });
       break;
     }
-    case 'NEW_FOLDER':
-    case 'NEW_DOCUMENT':
+    case 'NEW_DOCUMENT': {
+      dispatch({ type: 'OPEN_WINDOW', appId: 'texteditor' });
+      break;
+    }
     case 'OPEN_TERMINAL':
+    case 'OPEN_APP': {
+      dispatch({ type: 'OPEN_WINDOW', appId: args[0] || 'terminal' });
+      break;
+    }
     case 'CHANGE_BG':
+    case 'SHOW_SETTINGS': {
+      dispatch({ type: 'OPEN_WINDOW', appId: 'settings' });
+      break;
+    }
     case 'ARRANGE_ICONS':
-    case 'SHOW_SETTINGS':
     case 'PIN_DOCK':
     case 'UNPIN_DOCK':
     case 'QUIT_APP': {
-      // Placeholder: will be handled by the component that opens the menu
       break;
     }
     case 'MINIMIZE_ALL': {

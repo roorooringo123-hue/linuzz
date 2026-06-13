@@ -117,14 +117,13 @@ export default function FileManager() {
     setRenameValue('');
   }, [fs, renameId, renameValue]);
 
-  /* Delete handler - unused for now */
-  // const handleDelete = useCallback(
-  //   (id: string) => {
-  //     fs.moveToTrash(id);
-  //     setSelectedId(null);
-  //   },
-  //   [fs]
-  // );
+  const handleDelete = useCallback(
+    (id: string) => {
+      fs.moveToTrash(id);
+      setSelectedId(null);
+    },
+    [fs]
+  );
 
   const handleSidebarClick = useCallback(
     (path: string) => {
@@ -239,6 +238,14 @@ export default function FileManager() {
             title="New File"
           >
             <FilePlus size={14} />
+          </button>
+          <button
+            onClick={() => selectedId && handleDelete(selectedId)}
+            disabled={!selectedId}
+            className="w-7 h-7 rounded flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-30"
+            title="Move to Trash"
+          >
+            <Trash2 size={14} />
           </button>
         </div>
 

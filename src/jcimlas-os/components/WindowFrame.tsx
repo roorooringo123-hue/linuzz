@@ -48,7 +48,7 @@ const WindowFrame = memo(function WindowFrame({ window: win, children }: WindowF
   // ---- Drag ----
   const handleTitleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (isMaximized || e.target !== e.currentTarget) return;
+      if (isMaximized || (e.target as HTMLElement).closest('button')) return;
       e.preventDefault();
       dragRef.current = {
         isDragging: true,
@@ -96,16 +96,6 @@ const WindowFrame = memo(function WindowFrame({ window: win, children }: WindowF
     },
     [isMaximized, getEdge, win.size, win.position]
   );
-
-  const getCursor = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMaximized) return 'default';
-    const edge = getEdge(e);
-    const cursors: Record<string, string> = {
-      n: 'n-resize', s: 's-resize', e: 'e-resize', w: 'w-resize',
-      nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize',
-    };
-    return cursors[edge] || 'default';
-  }, [isMaximized, getEdge]);
 
   // ---- Global mouse events for drag/resize ----
   useEffect(() => {
@@ -212,24 +202,19 @@ const WindowFrame = memo(function WindowFrame({ window: win, children }: WindowF
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Resize handles wrapper */}
-      <div
-        className="absolute inset-0 z-50"
-        style={{
-          cursor: getCursor as unknown as string,
-          pointerEvents: isDragging ? 'none' : 'auto',
-        }}
-        onMouseDown={handleResizeMouseDown}
-      >
-        <div style={{ position: 'absolute', top: 0, left: RESIZE_HANDLE, right: RESIZE_HANDLE, height: RESIZE_HANDLE, cursor: 'n-resize' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: RESIZE_HANDLE, right: RESIZE_HANDLE, height: RESIZE_HANDLE, cursor: 's-resize' }} />
-        <div style={{ position: 'absolute', left: 0, top: RESIZE_HANDLE, bottom: RESIZE_HANDLE, width: RESIZE_HANDLE, cursor: 'w-resize' }} />
-        <div style={{ position: 'absolute', right: 0, top: RESIZE_HANDLE, bottom: RESIZE_HANDLE, width: RESIZE_HANDLE, cursor: 'e-resize' }} />
-        <div style={{ position: 'absolute', top: 0, left: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'nw-resize' }} />
-        <div style={{ position: 'absolute', top: 0, right: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'ne-resize' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'sw-resize' }} />
-        <div style={{ position: 'absolute', bottom: 0, right: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'se-resize' }} />
-      </div>
+      {/* Resize handles */}
+      {!isMaximized && (
+        <>
+          <div className="absolute z-50" style={{ top: 0, left: RESIZE_HANDLE, right: RESIZE_HANDLE, height: RESIZE_HANDLE, cursor: 'n-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ bottom: 0, left: RESIZE_HANDLE, right: RESIZE_HANDLE, height: RESIZE_HANDLE, cursor: 's-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ left: 0, top: RESIZE_HANDLE, bottom: RESIZE_HANDLE, width: RESIZE_HANDLE, cursor: 'w-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ right: 0, top: RESIZE_HANDLE, bottom: RESIZE_HANDLE, width: RESIZE_HANDLE, cursor: 'e-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ top: 0, left: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'nw-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ top: 0, right: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'ne-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ bottom: 0, left: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'sw-resize' }} onMouseDown={handleResizeMouseDown} />
+          <div className="absolute z-50" style={{ bottom: 0, right: 0, width: RESIZE_HANDLE * 2, height: RESIZE_HANDLE * 2, cursor: 'se-resize' }} onMouseDown={handleResizeMouseDown} />
+        </>
+      )}
 
       {/* Title bar */}
       <div
