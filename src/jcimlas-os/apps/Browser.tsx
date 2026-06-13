@@ -322,7 +322,6 @@ export default function Browser() {
 
     // For real URLs, best-effort iframe with a friendly fallback when embedding is blocked.
     const host = activeTab.url.replace(/^https?:\/\//, '').split('/')[0];
-    void IFRAME_FRIENDLY_SITES; void generateSimulatedPage;
     const openExternal = () => {
       if (typeof window !== 'undefined') window.open(activeTab.url, '_blank', 'noopener,noreferrer');
     };
