@@ -119,10 +119,6 @@ const ContextMenu = memo(function ContextMenu() {
 function handleMenuAction(action: string, _state: unknown, dispatch: React.Dispatch<import('@/jcimlas-os/types').OSAction>) {
   const [cmd, ...args] = action.split(':');
   switch (cmd) {
-    case 'OPEN_APP': {
-      if (args[0]) dispatch({ type: 'OPEN_WINDOW', appId: args[0] });
-      break;
-    }
     case 'NEW_FOLDER': {
       dispatch({ type: 'OPEN_WINDOW', appId: 'filemanager' });
       break;
