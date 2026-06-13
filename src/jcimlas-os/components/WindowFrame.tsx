@@ -48,7 +48,7 @@ const WindowFrame = memo(function WindowFrame({ window: win, children }: WindowF
   // ---- Drag ----
   const handleTitleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (isMaximized || e.target !== e.currentTarget) return;
+      if (isMaximized || (e.target as HTMLElement).closest('button')) return;
       e.preventDefault();
       dragRef.current = {
         isDragging: true,
@@ -96,16 +96,6 @@ const WindowFrame = memo(function WindowFrame({ window: win, children }: WindowF
     },
     [isMaximized, getEdge, win.size, win.position]
   );
-
-  const getCursor = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (isMaximized) return 'default';
-    const edge = getEdge(e);
-    const cursors: Record<string, string> = {
-      n: 'n-resize', s: 's-resize', e: 'e-resize', w: 'w-resize',
-      nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize',
-    };
-    return cursors[edge] || 'default';
-  }, [isMaximized, getEdge]);
 
   // ---- Global mouse events for drag/resize ----
   useEffect(() => {
