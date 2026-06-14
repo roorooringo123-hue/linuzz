@@ -1,166 +1,148 @@
 // ============================================================
-// BootSequence — 4-phase animated boot
+// BootSequence — Linux-themed animated boot
 // ============================================================
 
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useRef } from 'react';
 
-const PHASE_LOGO = 0;
-const PHASE_LOADING = 1;
-const PHASE_TRANSITION = 2;
-const PHASE_DESKTOP = 3;
-const PHASE_DONE = 4;
+const BOOT_LINES = [
+  '[    0.000000] Booting jcimlasOS kernel 6.8.0-jcimlas ...',
+  '[    0.012043] CPU: Quad-core virtual @ 3.20GHz',
+  '[    0.024518] Memory: 16384MB available',
+  '[    0.041290] Initializing cgroup subsys cpuset',
+  '[    0.058821] ACPI: Core revision 20240321',
+  '[    0.073204] systemd[1]: Detected virtualization web.',
+  '[    0.094730] systemd[1]: Set hostname to <jcimlas-os>',
+  '[    0.118445] [  OK  ] Started Load Kernel Modules.',
+  '[    0.142998] [  OK  ] Mounted /proc, /sys, /dev.',
+  '[    0.167221] [  OK  ] Reached target Local File Systems.',
+  '[    0.198554] [  OK  ] Started Network Manager.',
+  '[    0.221087] [  OK  ] Started D-Bus System Message Bus.',
+  '[    0.254312] [  OK  ] Started User Login Management.',
+  '[    0.281772] [  OK  ] Reached target Graphical Interface.',
+  '[    0.310045] Starting jcimlas desktop session ...',
+  '[    0.342118] Welcome to jcimlasOS.',
+];
 
 const BootSequence = memo(function BootSequence({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<number>(PHASE_LOGO);
-  const [progress, setProgress] = useState(0);
-  const [loadingText, setLoadingText] = useState('Loading system...');
+  const [lines, setLines] = useState<string[]>([]);
+  const [phase, setPhase] = useState<'logs' | 'fade'>('logs');
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    timers.push(
-      setTimeout(() => {
-        setPhase(PHASE_LOADING);
-      }, 800)
-    );
-
-    timers.push(
-      setTimeout(() => {
-        let p = 0;
-        const interval = setInterval(() => {
-          p += Math.random() * 15 + 5;
-          if (p >= 100) {
-            p = 100;
-            clearInterval(interval);
-          }
-          setProgress(p);
-          if (p > 30) setLoadingText('Initializing services...');
-          if (p > 70) setLoadingText('Preparing desktop...');
-        }, 120);
-        timers.push(interval as unknown as ReturnType<typeof setTimeout>);
-      }, 800)
-    );
-
-    timers.push(
-      setTimeout(() => {
-        setPhase(PHASE_TRANSITION);
-      }, 2600)
-    );
-
-    timers.push(
-      setTimeout(() => {
-        setPhase(PHASE_DESKTOP);
-      }, 3400)
-    );
-
-    timers.push(
-      setTimeout(() => {
-        setPhase(PHASE_DONE);
-        onComplete();
-      }, 4200)
-    );
-
-    return () => timers.forEach((t) => clearTimeout(t));
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < BOOT_LINES.length) {
+        setLines((prev) => [...prev, BOOT_LINES[i]]);
+        i++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => setPhase('fade'), 500);
+        setTimeout(() => onComplete(), 1200);
+      }
+    }, 140);
+    return () => clearInterval(interval);
   }, [onComplete]);
 
-  if (phase === PHASE_DONE) return null;
-
-  const showContent = phase === PHASE_LOGO || phase === PHASE_LOADING || phase === PHASE_TRANSITION;
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [lines]);
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black"
+      className="fixed inset-0 z-[9999] flex flex-col bg-black overflow-hidden"
       style={{
-        transition: 'clip-path 800ms cubic-bezier(0, 0, 0.2, 1)',
-        clipPath:
-          phase === PHASE_DESKTOP || phase === PHASE_TRANSITION
-            ? phase === PHASE_DESKTOP
-              ? 'circle(150% at 50% 50%)'
-              : 'circle(0% at 50% 50%)'
-            : undefined,
+        opacity: phase === 'fade' ? 0 : 1,
+        transition: 'opacity 700ms ease',
+        fontFamily: '"JetBrains Mono", "Fira Code", ui-monospace, monospace',
       }}
     >
-      {phase === PHASE_TRANSITION && (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/wallpaper-default.jpg)' }}
-        />
-      )}
+      {/* CRT scanlines */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(0deg, rgba(0,255,120,0.04) 0px, rgba(0,255,120,0.04) 1px, transparent 1px, transparent 3px)',
+          mixBlendMode: 'overlay',
+        }}
+      />
+      {/* Vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%)' }}
+      />
 
-      {showContent && (
-        <div
-          className="flex flex-col items-center justify-center relative z-10"
-          style={{
-            opacity: phase === PHASE_TRANSITION ? 0 : 1,
-            transition: 'opacity 400ms ease',
-          }}
-        >
-          <div
-            className="mb-4"
-            style={{
-              opacity: phase >= PHASE_LOGO ? 1 : 0,
-              transform: `scale(${phase >= PHASE_LOGO ? 1 : 0.8})`,
-              filter: phase >= PHASE_LOGO ? 'blur(0px)' : 'blur(8px)',
-              transition: 'all 600ms cubic-bezier(0, 0, 0.2, 1)',
-              animation: phase === PHASE_LOADING ? 'pulse 1.6s ease-in-out infinite' : undefined,
-            }}
-          >
-            <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="48" cy="48" r="46" fill="#7C4DFF" opacity="0.9" />
-              <circle cx="34" cy="40" r="16" fill="#FF9800" opacity="0.85" />
-              <circle cx="58" cy="56" r="14" fill="#E91E63" opacity="0.7" />
-            </svg>
-          </div>
-
-          <h1
-            className="text-[28px] font-bold tracking-[0.1em] text-[#E0E0E0] mb-6"
-            style={{
-              opacity: phase >= PHASE_LOGO ? 1 : 0,
-              transform: `translateY(${phase >= PHASE_LOGO ? 0 : 10}px)`,
-              transition: 'all 400ms cubic-bezier(0, 0, 0.2, 1) 400ms',
-            }}
-          >
-            jcimlasOS
-          </h1>
-
-          {phase >= PHASE_LOADING && (
-            <div
-              className="w-[200px] h-[3px] rounded-full overflow-hidden mb-3"
-              style={{
-                background: 'rgba(124,77,255,0.2)',
-                opacity: phase >= PHASE_LOADING ? 1 : 0,
-                transition: 'opacity 200ms ease',
-              }}
-            >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${progress}%`,
-                  background: '#7C4DFF',
-                  transition: 'width 100ms linear',
-                }}
-              />
-            </div>
-          )}
-
-          {phase >= PHASE_LOADING && (
-            <p
-              className="text-[10px] text-[#9E9E9E] tracking-wider"
-              style={{
-                opacity: phase >= PHASE_LOADING ? 1 : 0,
-                transition: 'opacity 300ms ease',
-              }}
-            >
-              {loadingText}
-            </p>
-          )}
+      {/* Top brand */}
+      <div className="relative z-10 flex items-center gap-4 px-8 pt-8">
+        {/* Tux-style penguin glyph */}
+        <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+          <ellipse cx="32" cy="58" rx="20" ry="3" fill="rgba(0,0,0,0.5)" />
+          <path d="M32 6 C22 6 18 14 18 24 C18 30 16 34 14 40 C12 46 14 54 22 56 L42 56 C50 54 52 46 50 40 C48 34 46 30 46 24 C46 14 42 6 32 6 Z" fill="#1a1a1a" stroke="#7C4DFF" strokeWidth="1.5"/>
+          <ellipse cx="26" cy="22" rx="4" ry="5" fill="white"/>
+          <ellipse cx="38" cy="22" rx="4" ry="5" fill="white"/>
+          <circle cx="26" cy="23" r="2" fill="#000"/>
+          <circle cx="38" cy="23" r="2" fill="#000"/>
+          <path d="M28 30 L32 34 L36 30 Z" fill="#FF9800"/>
+          <path d="M20 50 Q32 58 44 50 L42 56 L22 56 Z" fill="#FF9800"/>
+        </svg>
+        <div>
+          <div className="text-[#7C4DFF] text-2xl font-bold tracking-wider">jcimlasOS</div>
+          <div className="text-[#4ade80] text-xs tracking-widest opacity-80">tty1 — boot console</div>
         </div>
-      )}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#4ade80] animate-pulse" />
+          <span className="text-[#4ade80] text-xs">SYSTEM ONLINE</span>
+        </div>
+      </div>
+
+      {/* Boot log */}
+      <div
+        ref={scrollRef}
+        className="relative z-10 flex-1 px-8 py-6 overflow-hidden text-[13px] leading-[1.7]"
+        style={{ color: '#a5f3a5' }}
+      >
+        {lines.map((line, idx) => {
+          const isOk = line.includes('[  OK  ]');
+          return (
+            <div key={idx} style={{ animation: 'bootLineIn 200ms ease' }}>
+              {isOk ? (
+                <>
+                  <span style={{ color: '#9CA3AF' }}>{line.split('[  OK  ]')[0]}</span>
+                  <span style={{ color: '#4ade80', fontWeight: 600 }}>[  OK  ]</span>
+                  <span style={{ color: '#E5E7EB' }}>{line.split('[  OK  ]')[1]}</span>
+                </>
+              ) : (
+                <span style={{ color: line.startsWith('[') ? '#9CA3AF' : '#a5f3a5' }}>{line}</span>
+              )}
+            </div>
+          );
+        })}
+        <div className="inline-block w-2.5 h-4 bg-[#4ade80] align-middle ml-1" style={{ animation: 'blink 1s steps(2) infinite' }} />
+      </div>
+
+      {/* Bottom tagline */}
+      <div className="relative z-10 px-8 pb-8 pt-4 border-t border-[#7C4DFF]/20">
+        <div className="text-center text-sm text-[#9CA3AF]">
+          a web based Linux OS made by{' '}
+          <a
+            href="https://jcimlas.xo.je"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#7C4DFF] hover:text-[#9575FF] font-semibold underline underline-offset-4 transition-colors"
+            style={{ textShadow: '0 0 8px rgba(124,77,255,0.6)' }}
+          >
+            jcimlas
+          </a>
+        </div>
+      </div>
 
       <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
+        @keyframes bootLineIn {
+          from { opacity: 0; transform: translateX(-4px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
         }
       `}</style>
     </div>
