@@ -53,18 +53,20 @@ const AppLauncher = memo(function AppLauncher() {
     [dispatch]
   );
 
-  const filteredApps = apps.filter((app) => {
-    const matchesSearch = !searchQuery ||
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const q = (searchQuery || '').toLowerCase();
+  const filteredApps = (apps || []).filter((app) => {
+    if (!app) return false;
+    const name = (app.name || '').toLowerCase();
+    const desc = (app.description || '').toLowerCase();
+    const matchesSearch = !q || name.includes(q) || desc.includes(q);
     const matchesCategory = activeCategory === 'All' || activeCategory === 'Favorites'
       ? true
       : app.category === activeCategory;
-    const matchesFavorites = activeCategory !== 'Favorites' || dockItems.some((d) => d.appId === app.id && d.isPinned);
+    const matchesFavorites = activeCategory !== 'Favorites' || (dockItems || []).some((d) => d.appId === app.id && d.isPinned);
     return matchesSearch && matchesCategory && matchesFavorites;
   });
 
-  const frequentApps = dockItems
+  const frequentApps = (dockItems || [])
     .filter((d) => d.isPinned)
     .map((d) => getAppById(d.appId))
     .filter(Boolean);
